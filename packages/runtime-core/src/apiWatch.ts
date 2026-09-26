@@ -199,6 +199,7 @@ function doWatch(
   let isPre = false
   if (flush === 'post') {
     baseWatchOptions.scheduler = job => {
+      // 组件更新之后执行
       queuePostRenderEffect(job, instance && instance.suspense)
     }
   } else if (flush !== 'sync') {

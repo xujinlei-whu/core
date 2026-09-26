@@ -115,6 +115,7 @@ export function doCompileStyle(
   if (trim) {
     plugins.push(trimPlugin())
   }
+  // 如果scoped为true,就向postCss添加一个插件
   if (scoped) {
     plugins.push(scopedPlugin(longId))
   }

@@ -12,21 +12,29 @@ const animationNameRE = /^(?:-\w+-)?animation-name$/
 const animationRE = /^(?:-\w+-)?animation$/
 const keyframesRE = /^(?:-\w+-)?keyframes$/
 
+/** postCss 插件
+ * PostCss 接收一个文件并提供一个 API 来分析、修改它的规则（通过把 CSS 规则转换成一个抽象语法树的方式）
+ * 跟babel类似， babel 是做 js 语法树
+ */
 const scopedPlugin: PluginCreator<string> = (id = '') => {
   const keyframes = Object.create(null)
   const shortId = id.replace(/^data-v-/, '')
 
   return {
+    // 定义PostCss插件名称
     postcssPlugin: 'vue-sfc-scoped',
+    // 处理 CSS语法树
     Rule(rule) {
       processRule(id, rule)
     },
+    // 处理@相关得当css，例如media、keyframes
     AtRule(node) {
       if (keyframesRE.test(node.name) && !node.params.endsWith(`-${shortId}`)) {
         // register keyframes
         keyframes[node.params] = node.params = node.params + '-' + shortId
       }
     },
+    // 最后执行而且处理一次
     OnceExit(root) {
       if (Object.keys(keyframes).length) {
         // If keyframes are found in this <style>, find and rewrite animation names

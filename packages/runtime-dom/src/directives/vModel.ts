@@ -76,6 +76,7 @@ export const vModelText: ModelDirective<
     el[assignKey] = getModelAssigner(vnode)
     const castToNumber =
       number || (vnode.props && vnode.props.type === 'number')
+    // change 只有改变值且鼠标离开才会触发，input会一直触发
     addEventListener(el, lazy ? 'change' : 'input', e => {
       if ((e.target as any).composing) return
       el[assignKey](castValue(el.value, trim, castToNumber))

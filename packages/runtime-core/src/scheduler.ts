@@ -53,6 +53,7 @@ let currentFlushPromise: Promise<void> | null = null
 const RECURSION_LIMIT = 100
 type CountMap = Map<SchedulerJob, number>
 
+// nextTick实现，通过 Promise.then() 实异步执行 nextTick 的回调函数
 export function nextTick(): Promise<void>
 export function nextTick<T, R>(
   this: T,
@@ -95,11 +96,17 @@ function findInsertionIndex(id: number) {
 
   return start
 }
-
+/** queueJob 其实就是组件实例上面的 update 方法
+ * 生成 instanceof.update 函数
+ * const update = (instance.update = () => effect.run())
+ * update.id = instance.uid
+ * queueJob(update)
+ */
 export function queueJob(job: SchedulerJob): void {
   if (!(job.flags! & SchedulerJobFlags.QUEUED)) {
     const jobId = getId(job)
     const lastJob = queue[queue.length - 1]
+    // 去重判断
     if (
       !lastJob ||
       // fast path when the job id is larger than the tail
@@ -107,6 +114,7 @@ export function queueJob(job: SchedulerJob): void {
     ) {
       queue.push(job)
     } else {
+      // 按照 job id 自增的顺序排列
       queue.splice(findInsertionIndex(jobId), 0, job)
     }
 
@@ -118,6 +126,7 @@ export function queueJob(job: SchedulerJob): void {
 
 function queueFlush() {
   if (!currentFlushPromise) {
+    // 核心是创建一个 Promise 微任务，把 flushJobs 放进去执行
     currentFlushPromise = resolvedPromise.then(flushJobs)
   }
 }
@@ -264,6 +273,7 @@ function flushJobs(seen?: CountMap) {
     flushIndex = -1
     queue.length = 0
 
+    // 执行不同的调度策略
     flushPostFlushCbs(seen)
 
     currentFlushPromise = null
